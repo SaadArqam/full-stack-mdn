@@ -1,6 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-
+const prisma=require('../db/config')
 const addBook = async (req, res) => {
   try {
     const { title, summary, isbn } = req.body;
@@ -16,20 +14,18 @@ const addBook = async (req, res) => {
       return res.status(401).json({ message: "Invalid book details" });
     }
 
-    const newBook = await prisma.book.create({
-      data: {
+const newBook = await prisma.book.create({
+  data: {
     title,
     summary,
     isbn,
-    author: {
-      create: {
-        first_name: "John",
-        family_name: "Doe",
-        name: "John Doe"
-      }
-    }
-  }
-    });
+    author: { connect: { id: Number(authorId) } },
+    genres: {
+      connect: [{ id: Number(genreId) }],
+    },
+  },
+});
+
 
     return res.status(201).json(newBook);
   } catch (error) {
@@ -43,7 +39,7 @@ const showBook = async (req, res) => {
     const allBooks = await prisma.book.findMany();
     return res.status(200).json(allBooks);
   } catch (error) {
-    console.error("Error creating book:", error);
+    console.error("Error finding book:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };

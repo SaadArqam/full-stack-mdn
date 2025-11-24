@@ -27,7 +27,6 @@ model Author {
   id           Int      @id @default(autoincrement())
   first_name   String
   family_name  String
-  name         String
   date_of_birth DateTime?
   date_of_death DateTime?
   books        Book[]
