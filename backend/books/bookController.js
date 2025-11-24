@@ -29,7 +29,6 @@ const addBook = async (req, res) => {
       },
     });
 
-    
     return res.status(201).json(newBook);
   } catch (error) {
     console.error("Error creating book:", error);
@@ -69,4 +68,23 @@ const updateBook = async (req, res) => {
   }
 };
 
-module.exports = { addBook, showBook, updateBook };
+const deleteBook = async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    const bookExists = await prisma.book.findUnique({ where: { id } });
+    if (!bookExists) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+    const deletedBook = await prisma.book.delete({
+      where: { id: id },
+    });
+    return res
+      .status(200)
+      .json({ message: "Book deleted", deletedBook: deletedBook });
+  } catch (error) {
+    console.error("Error deleting book:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = { addBook, showBook, updateBook, deleteBook};
