@@ -41,4 +41,31 @@ const showAuthor = async (req, res) => {
   }
 };
 
-module.exports = { addAuthor, showAuthor };
+const updateAuthor = async (req, res) => {
+  const id = Number(req.params.id);
+  const { first_name, family_name, date_of_birth, date_of_death } = req.body;
+
+  try {
+    const authorExists = await prisma.author.findUnique({ where: { id } });
+    if (!authorExists) {
+      return res.status(404).json({ message: "Author not found" });
+    }
+
+    const updatedAuthor = await prisma.author.update({
+      where: { id },
+      data: {
+        first_name,
+        family_name,
+        date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
+        date_of_death: date_of_death ? new Date(date_of_death) : null,
+      },
+    });
+
+    return res.status(200).json(updatedAuthor);
+  } catch (error) {
+    console.error("Error updating author:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = { addAuthor, showAuthor, updateAuthor };
