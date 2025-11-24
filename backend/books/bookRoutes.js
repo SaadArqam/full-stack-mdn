@@ -1,9 +1,9 @@
-const express=require('express')
-const route=express.Router()
-const {addBook,showBook}=require('./bookController')
+const express = require("express");
+const route = express.Router();
+const { addBook, showBook, updateBook } = require("./bookController");
 
-route.post('/add',addBook)
-route.get('/',showBook)
+route.post("/add", addBook);
+route.get("/", showBook);
+route.get("/update", updateBook);
 
-
-module.exports=route
+module.exports = route;

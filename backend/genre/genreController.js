@@ -18,13 +18,13 @@ const addGenre = async (req, res) => {
   }
 };
 
-const showGenre=async (req,res)=>{
-      try {
+const showGenre = async (req, res) => {
+  try {
     const allGenre = await prisma.genre.findMany();
     return res.status(200).json(allGenre);
   } catch (error) {
     console.error("Error finding genre:", error);
     return res.status(500).json({ message: "Server error" });
   }
-}
-module.exports={addGenre,showGenre}
+};
+module.exports = { addGenre, showGenre };

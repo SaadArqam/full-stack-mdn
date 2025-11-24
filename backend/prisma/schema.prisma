@@ -14,26 +14,26 @@ datasource db {
 }
 
 model Book {
-  id        Int      @id @default(autoincrement())
-  title     String
-  summary   String
-  isbn      String   @unique
-  author    Author   @relation(fields: [authorId], references: [id])
-  authorId  Int
-  genres    Genre[]  @relation("BookGenres")
+  id       Int     @id @default(autoincrement())
+  title    String
+  summary  String
+  isbn     String  @unique
+  author   Author  @relation(fields: [authorId], references: [id])
+  authorId Int
+  genres   Genre[] @relation("BookGenres")
 }
 
 model Author {
-  id           Int      @id @default(autoincrement())
-  first_name   String
-  family_name  String
+  id            Int       @id @default(autoincrement())
+  first_name    String
+  family_name   String
   date_of_birth DateTime?
   date_of_death DateTime?
-  books        Book[]
+  books         Book[]
 }
 
 model Genre {
-  id    Int     @id @default(autoincrement())
+  id    Int    @id @default(autoincrement())
   name  String
-  books Book[]  @relation("BookGenres")
+  books Book[] @relation("BookGenres")
 }
