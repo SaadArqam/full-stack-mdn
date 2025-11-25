@@ -1,22 +1,31 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
-const Api = (endpoint) => {
+export const useApi = (endpoint) => {
   const [data, setData] = useState(null);
 
-  useEffect(() => {
-    // Renamed the inner async function to avoid name conflict
-    async function fetchData() {
-      try {
-        const response = await fetch(`http://localhost:3000/${endpoint}`);
-        const json = await response.json();
-        setData(json);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      }
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/${endpoint}`);
+      const json = await response.json();
+      setData(json);
+    } catch (err) {
+      console.error("Error fetching data:", err);
     }
+  };
+
+  useEffect(() => {
     fetchData();
   }, [endpoint]);
-  return data
+
+  return { data, refresh: fetchData };
 };
 
-export default Api;
+export const postApi = async (endpoint, body) => {
+  const response = await fetch(`http://localhost:3000/${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  return response.json();
+};
