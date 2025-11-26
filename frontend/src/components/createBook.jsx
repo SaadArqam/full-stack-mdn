@@ -7,7 +7,7 @@ const CreateBook = () => {
     summary: "",
     isbn: "",
     authorName: "",
-    genreName: "", // single genre
+    genreName: "", // single genre as text
   });
 
   const [authors, setAuthors] = useState([]);
@@ -20,15 +20,20 @@ const CreateBook = () => {
   }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validation
-    if (!formData.title || !formData.summary || !formData.isbn || !formData.authorName || !formData.genreName) {
+    if (
+      !formData.title?.trim() ||
+      !formData.summary?.trim() ||
+      !formData.isbn?.trim() ||
+      !formData.authorName?.trim() ||
+      !formData.genreName?.trim()
+    ) {
       alert("All fields are required!");
       return;
     }
@@ -57,13 +62,15 @@ const CreateBook = () => {
           onChange={handleChange}
           required
         />
-        <input
+
+        <textarea
           placeholder="Summary"
           name="summary"
           value={formData.summary}
           onChange={handleChange}
           required
         />
+
         <input
           placeholder="ISBN"
           name="isbn"
@@ -72,7 +79,7 @@ const CreateBook = () => {
           required
         />
 
-        {/* Author input */}
+        {/* Author input with dropdown */}
         <input
           list="authors"
           placeholder="Select or add Author"
@@ -87,7 +94,7 @@ const CreateBook = () => {
           ))}
         </datalist>
 
-        {/* Genre input */}
+        {/* Genre input with dropdown */}
         <input
           list="genres"
           placeholder="Select or add Genre"
