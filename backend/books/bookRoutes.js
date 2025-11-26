@@ -1,10 +1,10 @@
 const express = require("express");
-const route = express.Router();
-const { addBook, showBook, updateBook, deleteBook} = require("./bookController");
+const router = express.Router();
+const { addBook, showBooks, updateBook, deleteBook } = require("./bookController");
 
-route.post("/add", addBook);
-route.get("/", showBook);
-route.get("/update", updateBook);
-route.get("/delete", deleteBook);
+router.post("/add", addBook);
+router.get("/", showBooks);
+router.put("/update/:id", updateBook);
+router.delete("/delete/:id", deleteBook);
 
-module.exports = route;
+module.exports = router;

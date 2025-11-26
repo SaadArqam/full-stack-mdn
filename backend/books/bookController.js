@@ -1,90 +1,114 @@
 const prisma = require("../db/config");
 
+const findOrCreateAuthor = async (authorName) => {
+  const [first, ...rest] = authorName.trim().split(" ");
+  const family = rest.join(" ") || "";
+
+  const author =
+    (await prisma.author.findFirst({ where: { first_name: first, family_name: family } })) ||
+    (await prisma.author.create({ data: { first_name: first, family_name: family } }));
+
+  return author;
+};
+
+const findOrCreateGenre = async (genreName) => {
+  const genre =
+    (await prisma.genre.findFirst({ where: { name: genreName.trim() } })) ||
+    (await prisma.genre.create({ data: { name: genreName.trim() } }));
+
+  return genre;
+};
+
 const addBook = async (req, res) => {
   try {
-    const { title, summary, isbn, authorId, genreId } = req.body;
+    const { title, summary, isbn, authorName, genreName } = req.body;
 
-    if (
-      !title ||
-      title.trim() === "" ||
-      !summary ||
-      summary.trim() === "" ||
-      !isbn ||
-      isbn.trim() === "" ||
-      !authorId ||
-      !genreId
-    ) {
-      return res.status(401).json({ message: "Invalid book details" });
+    if (!title?.trim() || !summary?.trim() || !isbn?.trim() || !authorName?.trim() || !genreName?.trim()) {
+      return res.status(400).json({ message: "All fields are required and must be valid" });
     }
+
+    const author = await findOrCreateAuthor(authorName);
+    const genre = await findOrCreateGenre(genreName);
 
     const newBook = await prisma.book.create({
       data: {
-        title,
-        summary,
-        isbn,
-        author: { connect: { id: Number(authorId) } },
-        genres: {
-          connect: [{ id: Number(genreId) }],
-        },
+        title: title.trim(),
+        summary: summary.trim(),
+        isbn: isbn.trim(),
+        authorId: author.id,
+        genres: { connect: { id: genre.id } },
       },
+      include: { author: true, genres: true },
     });
 
     return res.status(201).json(newBook);
   } catch (error) {
-    console.error("Error creating book:", error);
+    console.error(error);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
-const showBook = async (req, res) => {
+const showBooks = async (req, res) => {
   try {
-    const allBooks = await prisma.book.findMany();
-    return res.status(200).json(allBooks);
-  } catch (error) {
-    console.error("Error finding book:", error);
+    const books = await prisma.book.findMany({ include: { author: true, genres: true } });
+    return res.status(200).json(books);
+  } catch (err) {
+    console.error(err);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
 const updateBook = async (req, res) => {
-  const id = Number(req.params.id);
-  const { title, summary, isbn } = req.body;
-
   try {
-    const bookExists = await prisma.book.findUnique({ where: { id } });
-    if (!bookExists) {
-      return res.status(404).json({ message: "Book not found" });
+    const id = Number(req.params.id);
+    const { title, summary, isbn, authorName, genreName } = req.body;
+
+    const book = await prisma.book.findUnique({ where: { id } });
+    if (!book) return res.status(404).json({ message: "Book not found" });
+
+    let authorId = book.authorId;
+    if (authorName?.trim()) {
+      const author = await findOrCreateAuthor(authorName);
+      authorId = author.id;
     }
 
-    const updatedBook = await prisma.book.update({
+    let genreId;
+    if (genreName?.trim()) {
+      const genre = await findOrCreateGenre(genreName);
+      genreId = genre.id;
+    }
+
+    const updated = await prisma.book.update({
       where: { id },
-      data: { title, summary, isbn },
+      data: {
+        title: title?.trim(),
+        summary: summary?.trim(),
+        isbn: isbn?.trim(),
+        authorId,
+        ...(genreId && { genres: { set: [], connect: { id: genreId } } }),
+      },
+      include: { author: true, genres: true },
     });
 
-    return res.status(200).json(updatedBook);
-  } catch (error) {
-    console.error("Error updating book:", error);
+    return res.status(200).json(updated);
+  } catch (err) {
+    console.error(err);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
 const deleteBook = async (req, res) => {
-  const id = Number(req.params.id);
   try {
-    const bookExists = await prisma.book.findUnique({ where: { id } });
-    if (!bookExists) {
-      return res.status(404).json({ message: "Book not found" });
-    }
-    const deletedBook = await prisma.book.delete({
-      where: { id: id },
-    });
-    return res
-      .status(200)
-      .json({ message: "Book deleted", deletedBook: deletedBook });
-  } catch (error) {
-    console.error("Error deleting book:", error);
+    const id = Number(req.params.id);
+    const book = await prisma.book.findUnique({ where: { id } });
+    if (!book) return res.status(404).json({ message: "Book not found" });
+
+    await prisma.book.delete({ where: { id } });
+    return res.status(200).json({ message: "Book deleted successfully" });
+  } catch (err) {
+    console.error(err);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
-module.exports = { addBook, showBook, updateBook, deleteBook};
+module.exports = { addBook, showBooks, updateBook, deleteBook };

@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import { useApi } from "../api/Api.jsx";
+import { getApi } from "../api/Api.jsx";
 
 const Author = () => {
-  const { data, refresh } = useApi("author");
+  const { data, refresh } = getApi("author");
 
   useEffect(() => {
     console.log("Authors response:", data);

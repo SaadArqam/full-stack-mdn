@@ -27,4 +27,10 @@ const showGenre = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+// const deleteGenre=async (req,res)=>{
+//   try{
+
+//   }
+// }
 module.exports = { addGenre, showGenre };
