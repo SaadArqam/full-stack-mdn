@@ -28,9 +28,31 @@ const showGenre = async (req, res) => {
   }
 };
 
-// const deleteGenre=async (req,res)=>{
-//   try{
+const deleteGenre = async (req, res) => {
+  const genreId = req.params.genreId;
+  try {
+    await prisma.genre.delete({
+      where: {
+        id: Number(genreId),
+      },
+    });
+  } catch (err) {
+    console.log("unable to delete gnere", err);
+  }
+};
 
-//   }
-// }
-module.exports = { addGenre, showGenre };
+const updateGenre = async (req, res) => {
+  const genreId = req.params.genreId;
+  const data = req.body;
+  try {
+    const updatedGenre = await prisma.genre.update({
+      where: {
+        id: Number(genreId),
+      },
+      data: data,
+    });
+  } catch (err) {
+    console.log("unable to update genre", err);
+  }
+};
+module.exports = { addGenre, showGenre, deleteGenre, updateGenre };
