@@ -7,7 +7,7 @@ const CreateBook = () => {
     summary: "",
     isbn: "",
     authorName: "",
-    genreIds: [], // store selected genre IDs
+    genreName: "", // single genre
   });
 
   const [authors, setAuthors] = useState([]);
@@ -20,27 +20,16 @@ const CreateBook = () => {
   }, []);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    if (name === "genreIds") {
-      let newGenreIds = [...formData.genreIds];
-      const id = Number(value);
-      if (checked) {
-        newGenreIds.push(id);
-      } else {
-        newGenreIds = newGenreIds.filter((g) => g !== id);
-      }
-      setFormData({ ...formData, genreIds: newGenreIds });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.genreIds.length) {
-      alert("Select at least one genre");
+    // Validation
+    if (!formData.title || !formData.summary || !formData.isbn || !formData.authorName || !formData.genreName) {
+      alert("All fields are required!");
       return;
     }
 
@@ -48,7 +37,7 @@ const CreateBook = () => {
 
     if (result.id) {
       alert("Book added successfully!");
-      setFormData({ title: "", summary: "", isbn: "", authorName: "", genreIds: [] });
+      setFormData({ title: "", summary: "", isbn: "", authorName: "", genreName: "" });
     } else {
       alert("Error adding book: " + result.message);
     }
@@ -83,7 +72,7 @@ const CreateBook = () => {
           required
         />
 
-        {/* Author selection */}
+        {/* Author input */}
         <input
           list="authors"
           placeholder="Select or add Author"
@@ -98,22 +87,20 @@ const CreateBook = () => {
           ))}
         </datalist>
 
-        {/* Genre checkboxes */}
-        <div>
-          <p>Select Genres:</p>
+        {/* Genre input */}
+        <input
+          list="genres"
+          placeholder="Select or add Genre"
+          name="genreName"
+          value={formData.genreName}
+          onChange={handleChange}
+          required
+        />
+        <datalist id="genres">
           {genres.map((g) => (
-            <label key={g.id} className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                name="genreIds"
-                value={g.id}
-                checked={formData.genreIds.includes(g.id)}
-                onChange={handleChange}
-              />
-              {g.name}
-            </label>
+            <option key={g.id} value={g.name} />
           ))}
-        </div>
+        </datalist>
 
         <button type="submit" className="border p-2 mt-2">
           Add Book

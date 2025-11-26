@@ -1,24 +1,27 @@
-import React, { useEffect } from "react";
-import { getApi } from "../api/Api.jsx";
+import React, { useEffect, useState } from "react";
+import { getApi } from "../api/Api";
 
 const Author = () => {
-  const { data, refresh } = getApi("author");
+  const [authors, setAuthors] = useState([]);
+
+  const fetchAuthors = async () => {
+    const data = await getApi("author");
+    setAuthors(data);
+  };
 
   useEffect(() => {
-    console.log("Authors response:", data);
-  }, [data]);
+    fetchAuthors();
+  }, []);
 
   return (
     <div style={{ color: "white" }}>
       <h1>All Authors</h1>
-      <button onClick={refresh}>Refresh</button>
+      <button onClick={fetchAuthors}>Refresh</button>
 
-      {!data ? (
-        <p>Loading...</p>
-      ) : data.length === 0 ? (
+      {authors.length === 0 ? (
         <p>No authors found</p>
       ) : (
-        data.map((author) => (
+        authors.map((author) => (
           <h3 key={author.id}>
             {author.first_name} {author.family_name}
           </h3>

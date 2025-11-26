@@ -12,34 +12,25 @@ const findOrCreateAuthor = async (authorName) => {
   return author;
 };
 
-// Create or find multiple genres by name array
-const findOrCreateGenres = async (genreIdsOrNames) => {
-  const genres = [];
-
-  for (const g of genreIdsOrNames) {
-    let genre;
-    if (typeof g === "number") {
-      genre = await prisma.genre.findUnique({ where: { id: g } });
-    } else {
-      genre = (await prisma.genre.findFirst({ where: { name: g.trim() } })) ||
-              (await prisma.genre.create({ data: { name: g.trim() } }));
-    }
-    if (genre) genres.push(genre);
-  }
-
-  return genres;
+// Create or find a single genre by name
+const findOrCreateGenre = async (genreName) => {
+  const genre =
+    (await prisma.genre.findFirst({ where: { name: genreName.trim() } })) ||
+    (await prisma.genre.create({ data: { name: genreName.trim() } }));
+  return genre;
 };
 
 const addBook = async (req, res) => {
   try {
-    const { title, summary, isbn, authorName, genreIds } = req.body;
+    const { title, summary, isbn, authorName, genreName } = req.body;
 
-    if (!title?.trim() || !summary?.trim() || !isbn?.trim() || !authorName?.trim() || !genreIds?.length) {
+    // Validate fields
+    if (!title?.trim() || !summary?.trim() || !isbn?.trim() || !authorName?.trim() || !genreName?.trim()) {
       return res.status(400).json({ message: "All fields are required and must be valid" });
     }
 
     const author = await findOrCreateAuthor(authorName);
-    const genres = await findOrCreateGenres(genreIds);
+    const genre = await findOrCreateGenre(genreName);
 
     const newBook = await prisma.book.create({
       data: {
@@ -47,7 +38,7 @@ const addBook = async (req, res) => {
         summary: summary.trim(),
         isbn: isbn.trim(),
         authorId: author.id,
-        genres: { connect: genres.map((g) => ({ id: g.id })) },
+        genres: { connect: { id: genre.id } }, // single genre
       },
       include: { author: true, genres: true },
     });
@@ -72,7 +63,7 @@ const showBooks = async (req, res) => {
 const updateBook = async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { title, summary, isbn, authorName, genreIds } = req.body;
+    const { title, summary, isbn, authorName, genreName } = req.body;
 
     const book = await prisma.book.findUnique({ where: { id }, include: { genres: true } });
     if (!book) return res.status(404).json({ message: "Book not found" });
@@ -84,9 +75,9 @@ const updateBook = async (req, res) => {
     }
 
     let genreConnect = undefined;
-    if (genreIds?.length) {
-      const genres = await findOrCreateGenres(genreIds);
-      genreConnect = genres.map((g) => ({ id: g.id }));
+    if (genreName?.trim()) {
+      const genre = await findOrCreateGenre(genreName);
+      genreConnect = { id: genre.id };
     }
 
     const updated = await prisma.book.update({
